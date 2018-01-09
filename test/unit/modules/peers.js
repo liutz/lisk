@@ -702,7 +702,6 @@ describe('peers', function () {
 		});
 
 		it('should update peers during onBlockchainReady', function (done) {
-
 			peers.onBlockchainReady();
 			setTimeout(function () {
 				expect(peers.discover.calledOnce).to.be.ok;
