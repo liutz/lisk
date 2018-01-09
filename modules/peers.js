@@ -351,6 +351,9 @@ Peers.prototype.discover = function (cb) {
 			if (!err && randomPeer) {
 				randomPeer.rpc.status(function (err, status) {
 					__private.updatePeerStatus(err, status, randomPeer);
+					if (err) {
+						return setImmediate(waterCb, err);
+					}
 					randomPeer.rpc.list(waterCb);
 				});
 			} else {
