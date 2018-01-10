@@ -237,7 +237,7 @@ describe('transport', function () {
 				library.schema.validate = sinon.stub().callsArg(2);
 
 				__private.receiveSignatures({
-					signatures: ['TODO123', 'TODO456'] // TODO Use proper signatures
+					signatures: ['SIGNATURE123', 'SIGNATURE456']
 				}, function (err) {
 					expect(library.schema.validate.called).to.be.true;
 					done();
@@ -266,7 +266,7 @@ describe('transport', function () {
 				library.schema.validate = sinon.stub().callsArg(2);
 
 				__private.receiveSignatures({
-					signatures: ['TODO123', 'TODO456'] // TODO Use proper signatures
+					signatures: ['SIGNATURE123', 'SIGNATURE456']
 				}, function (err) {
 					expect(library.schema.validate.called).to.be.true;
 
@@ -285,7 +285,7 @@ describe('transport', function () {
 					library.schema.validate = sinon.stub().callsArgWith(2, err);
 
 					__private.receiveSignatures({
-						signatures: ['TODO123', 'TODO456'] // TODO Use proper signatures
+						signatures: ['SIGNATURE123', 'SIGNATURE456']
 					}, function (err) {
 						expect(library.schema.validate.called).to.be.true;
 						expect(err).to.equal('Invalid signatures body');
@@ -298,31 +298,54 @@ describe('transport', function () {
 
 				describe('for every signature in signatures', function () {
 
-					// it('should call __private.receiveSignature with signature', function (done) {
-					// 	__private.receiveSignature = sinon.stub().callsArg(1);
-					//
-					// 	var validateWasCalled = false;
-					// 	library.schema.validate = function (query, signaturesSchema, callback) {
-					// 		validateWasCalled = true;
-					// 		callback();
-					// 	};
-					//
-					// 	__private.receiveSignatures({
-					// 		signatures: ['TODO123', 'TODO456'] // TODO Use proper signatures
-					// 	}, function (err) {
-					// 		expect(validateWasCalled).to.be.true;
-					// 		expect(err).to.equal('Invalid signatures body');
-					// 		done();
-					// 	});
-					// });
+					it('should call __private.receiveSignature with signature', function (done) {
+						__private.receiveSignature = sinon.stub().callsArg(1);
+						library.schema.validate = sinon.stub().callsArg(2);
+
+						__private.receiveSignatures({
+							signatures: ['SIGNATURE123', 'SIGNATURE456']
+						}, function (err) {
+							expect(library.schema.validate.called).to.be.true;
+							expect(__private.receiveSignature.calledTwice).to.be.true;
+							expect(__private.receiveSignature.calledWith('SIGNATURE123')).to.be.true;
+							expect(__private.receiveSignature.calledWith('SIGNATURE456')).to.be.true;
+							done();
+						});
+					});
 
 					describe('when __private.receiveSignature fails', function () {
 
-						it('should call library.logger.debug with err');
+						it('should call library.logger.debug with err and signature', function (done) {
+							var err = 'Error processing signature: Error message';
+							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
+							library.schema.validate = sinon.stub().callsArg(2);
+							library.logger.debug = sinon.spy();
 
-						it('should call library.logger.debug with signature');
+							__private.receiveSignatures({
+								signatures: ['SIGNATURE123', 'SIGNATURE456']
+							}, function (err) {
+								expect(library.schema.validate.called).to.be.true;
+								// If any of the __private.receiveSignature calls fail, the whole
+								// receiveSignatures operation should fail immediately.
+								expect(__private.receiveSignature.calledOnce).to.be.true;
+								expect(library.logger.debug.calledWith(err, 'SIGNATURE123')).to.be.true;
+								done();
+							});
+						});
 
-						it('should call callback with error');
+						it('should call callback with error', function (done) {
+							var err = 'Error processing signature: Error message';
+							__private.receiveSignature = sinon.stub().callsArgWith(1, err);
+							library.schema.validate = sinon.stub().callsArg(2);
+							library.logger.debug = sinon.spy();
+
+							__private.receiveSignatures({
+								signatures: ['SIGNATURE123', 'SIGNATURE456']
+							}, function (err) {
+								expect(err).to.be.equal(err);
+								done();
+							});
+						});
 					});
 
 					describe('when __private.receiveSignature succeeds', function () {
